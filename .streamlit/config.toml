@@ -1,0 +1,10 @@
+# Arayüzün herkeste aynı görünmesi için tema sabitlenmiştir.
+[theme]
+base = "light"
+primaryColor = "#2f6f4e"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f8fa"
+textColor = "#1f2328"
+
+[browser]
+gatherUsageStats = false
