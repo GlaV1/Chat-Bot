@@ -7,12 +7,17 @@ sadece bu dosyaya dokunulur.
 """
 
 import os
+import time
 
 from google import genai
 from google.genai import errors, types
 
 # Hızlı ve ücretsiz katmanda kullanılabilen güncel model.
-MODEL = "gemini-2.5-flash"
+# Model adları zamanla değişiyor; 404 alırsan buradaki adı güncelle.
+MODEL = "gemini-3.5-flash-lite"
+
+# Model yoğun olduğunda (503) kaç kez yeniden denensin.
+DENEME_SAYISI = 3
 
 
 class BotHatasi(Exception):
@@ -55,36 +60,48 @@ def cevap_uret(istemci, gecmis, sistem_talimati):
     Geçmişin tamamı her istekte yeniden gönderilir; botun önceki mesajları
     "hatırlamasının" tek sebebi bu. Model kendi başına bir şey saklamaz.
     """
-    try:
-        yanit = istemci.models.generate_content(
-            model=MODEL,
-            contents=_gecmisi_cevir(gecmis),
-            config=types.GenerateContentConfig(
-                system_instruction=sistem_talimati,
-                temperature=0.8,
-            ),
-        )
-    except errors.ClientError as hata:
-        if hata.code == 429:
+    # Model yoğun olduğunda (503) Google geçici hata döndürüyor. Bu durumda
+    # kısa bir bekleyip tekrar denemek sorunu çoğu zaman çözüyor.
+    for deneme in range(DENEME_SAYISI):
+        try:
+            yanit = istemci.models.generate_content(
+                model=MODEL,
+                contents=_gecmisi_cevir(gecmis),
+                config=types.GenerateContentConfig(
+                    system_instruction=sistem_talimati,
+                    temperature=0.8,
+                ),
+            )
+            break
+        except errors.ServerError as hata:
+            if deneme < DENEME_SAYISI - 1:
+                time.sleep(1.5 * (deneme + 1))
+                continue
             raise BotHatasi(
-                "İstek sınırına takıldın. Bir dakika bekleyip tekrar dene."
+                "Model şu anda yoğun. Birkaç saniye sonra tekrar dene."
             ) from hata
-        if hata.code in (400, 401, 403):
+        except errors.ClientError as hata:
+            if hata.code == 429:
+                raise BotHatasi(
+                    "İstek sınırına takıldın. Bir dakika bekleyip tekrar dene."
+                ) from hata
+            if hata.code == 404:
+                raise BotHatasi(
+                    f"'{MODEL}' modeli bu anahtarla kullanılamıyor. "
+                    "bot.py dosyasındaki MODEL satırını güncellemen gerekiyor."
+                ) from hata
+            if hata.code in (400, 401, 403):
+                raise BotHatasi(
+                    "API anahtarı geçersiz ya da yetkisiz görünüyor. "
+                    ".env dosyasındaki GOOGLE_API_KEY değerini kontrol et."
+                ) from hata
             raise BotHatasi(
-                "API anahtarı geçersiz ya da yetkisiz görünüyor. "
-                ".env dosyasındaki GOOGLE_API_KEY değerini kontrol et."
+                f"İstek reddedildi (kod {hata.code})."
             ) from hata
-        raise BotHatasi(
-            f"İstek reddedildi (kod {hata.code}). Mesajı değiştirip tekrar deneyebilirsin."
-        ) from hata
-    except errors.ServerError as hata:
-        raise BotHatasi(
-            "Google tarafında geçici bir sorun var. Birazdan tekrar dene."
-        ) from hata
-    except Exception as hata:
-        raise BotHatasi(
-            "Modele bağlanılamadı. İnternet bağlantını kontrol edip tekrar dene."
-        ) from hata
+        except Exception as hata:
+            raise BotHatasi(
+                "Modele bağlanılamadı. İnternet bağlantını kontrol edip tekrar dene."
+            ) from hata
 
     metin = (yanit.text or "").strip()
     if not metin:

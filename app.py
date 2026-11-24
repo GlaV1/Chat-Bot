@@ -22,7 +22,17 @@ st.markdown(
     <style>
       .block-container { max-width: 820px; padding-top: 3rem; }
 
+      /* Sağ üstteki araç çubuğunu tamamen gizle (Deploy + üç nokta menüsü).
+         config.toml'daki toolbarMode="minimal" bunu zaten yapıyor; tema
+         seçici menüyü geri getirebildiği için burada da kapatıyoruz. */
+      [data-testid="stToolbar"] { display: none; }
+
       .stChatMessage { border-radius: 14px; padding: 0.85rem 1.1rem; }
+
+      /* Mesajların yanındaki avatar simgelerini gizle.
+         display:none kullanıyoruz; öğe DOM'da kaldığı için aşağıdaki
+         :has() seçicileri kullanıcı/bot ayrımını yapmaya devam ediyor. */
+      .stChatMessage [data-testid^="stChatMessageAvatar"] { display: none; }
 
       /* Kullanıcı: hafif renkli zemin — Bot: sade çerçeve */
       .stChatMessage:has([data-testid="stChatMessageAvatarUser"]) {

@@ -102,7 +102,53 @@ Bir de şunu düzelttim: ilk yazdığımda hata olunca kullanıcının mesajın�
 geçmişten siliyordum. Denerken fark ettim ki bu, kişiyi yazdığını baştan
 yazmaya zorluyor. Şimdi mesaj ekranda kalıyor, altında uyarı çıkıyor.
 
-## 9. API anahtarı
+## 9. Anahtar doğruydu ama 404 aldım
+
+Anahtarı `.env`'e yazdım, uygulama yine hata verdi: **404**. Anahtar yanlış
+olsa 401 ya da 403 gelirdi, 404 başka bir şey demek.
+
+Sebebi şuymuş: kullandığım model (`gemini-2.5-flash`) yeni anahtarlara
+kapatılmış. Hatanın tam metni şöyleydi:
+
+> This model models/gemini-2.5-flash is no longer available to new users.
+
+İlginç olan şu: `client.models.list()` modeli hâlâ listeliyor ama üretime
+açmıyor. Yani "listede var" demek "kullanabilirsin" demek değilmiş.
+
+Birkaç modeli tek tek deneyip süre ölçtüm:
+
+| Model | Sonuç |
+|---|---|
+| `gemini-2.5-flash` | 404 — kapatılmış |
+| `gemini-3.8-flash` | 503 — yoğun |
+| `gemini-3.6-flash` | çalışıyor ama ~25 sn |
+| `gemini-3.5-flash-lite` | çalışıyor, ~1 sn |
+
+`gemini-3.5-flash-lite` seçtim. Sohbet botunda hız doğrudan kullanıcı
+deneyimi demek, bekleme süresi uzun olunca uygulama bozuk sanılıyor.
+
+İki ders çıkardım:
+- Model adları zamanla değişiyor. Bu yüzden `bot.py`'nin en üstüne `MODEL`
+  sabiti koydum; 404 alan tek satırı değiştirip devam edebilsin.
+- Hata kodunu okumak önemli. 404 ile 403'ü ayırmasaydım saatlerce anahtarla
+  uğraşırdım. Şimdi kod 404 olduğunda "modeli güncelle" diyor.
+
+## 10. 503 — model yoğun
+
+Test ederken ara ara `503 UNAVAILABLE` aldım: "This model is currently
+experiencing high demand." Bu benim hatam değil, Google tarafında anlık
+yoğunluk. Kullanıcı açısından can sıkıcı, çünkü hiçbir şey yapmadan hata
+alıyorsun.
+
+Çözüm: hata gelince pes etmek yerine kısa bir bekleyip tekrar denemek
+(`bot.py` içindeki `DENEME_SAYISI`). Üç deneme de başarısız olursa kullanıcıya
+"model şu an yoğun" diyorum. Bekleme süresini her denemede artırıyorum
+(1.5 sn, 3 sn) — buna *backoff* deniyormuş.
+
+Not: ilk mesaj her zaman yavaş geliyor (~25 sn), sonrakiler 1 saniyenin
+altında. Sunum yapacaksam önce bir mesaj atıp modeli "ısıtmam" lazım.
+
+## 11. API anahtarı
 
 Anahtarı doğrudan kodun içine yazmak en kolayı ama repoya öyle girerse
 herkes görür. `python-dotenv` ile `.env` dosyasından okuyorum, `.env`'i de
