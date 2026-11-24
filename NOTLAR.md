@@ -2,7 +2,7 @@
 
 Projeyi yaparken tuttuğum notlar: ne öğrendim, nerede takıldım, nasıl çözdüm.
 Yönergede istenen "notlar" kısmı bu dosya.
-asdasdasdasdasdasd
+
 ---
 
 ## 1. Model aslında hiçbir şey hatırlamıyor
