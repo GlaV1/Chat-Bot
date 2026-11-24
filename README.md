@@ -5,7 +5,7 @@ Kullanıcı mesaj yazar, program konuşmanın tamamını seçili karakterin
 talimatıyla birlikte modele gönderir, gelen cevap ekranda görünür.
 Bot konuşma boyunca önceki mesajları hatırlar.
 
-Kulüp örnek projesidir; kod bilerek sade tutulmuştur.
+Kulüp örnek projesidir; kod bilerek sade tutulmuştur...
 
 ## Kurulum
 
