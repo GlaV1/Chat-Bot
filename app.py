@@ -13,7 +13,12 @@ from karakterler import KARAKTERLER, VARSAYILAN_KARAKTER
 # override=True sayesinde .env'i düzenleyip sayfayı yenilemek yeterli oluyor.
 load_dotenv(override=True)
 
-st.set_page_config(page_title="Sohbet Botu", page_icon="💬", layout="centered")
+st.set_page_config(
+    page_title="Sohbet Botu",
+    page_icon="💬",
+    layout="centered",
+    initial_sidebar_state="expanded",  # yan panel hep açık başlasın
+)
 
 # Sohbet alanını okunaklı bir genişlikte tutup kullanıcı ile bot
 # mesajlarını görsel olarak ayırmak için küçük bir stil düzenlemesi.
@@ -22,10 +27,11 @@ st.markdown(
     <style>
       .block-container { max-width: 820px; padding-top: 3rem; }
 
-      /* Sağ üstteki araç çubuğunu tamamen gizle (Deploy + üç nokta menüsü).
-         config.toml'daki toolbarMode="minimal" bunu zaten yapıyor; tema
-         seçici menüyü geri getirebildiği için burada da kapatıyoruz. */
-      [data-testid="stToolbar"] { display: none; }
+      /* Sağ üstteki "Deploy" butonunu ve üç nokta menüsünü gizle.
+         Dikkat: araç çubuğunun tamamını ([data-testid="stToolbar"])
+         gizlemiyoruz; kapatılan yan paneli geri açan düğme onun içinde. */
+      [data-testid="stAppDeployButton"],
+      [data-testid="stMainMenu"] { display: none; }
 
       .stChatMessage { border-radius: 14px; padding: 0.85rem 1.1rem; }
 
