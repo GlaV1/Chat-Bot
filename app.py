@@ -1,6 +1,6 @@
 """Yapay Zekâ Sohbet Botu — Streamlit arayüzü.
 
-Çalıştırmak için:  streamlit run app.py
+Çalıştırmak için:  streamlit run app.py asdgausyd
 """
 
 import streamlit as st
